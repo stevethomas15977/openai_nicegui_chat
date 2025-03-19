@@ -1,0 +1,69 @@
+name: Deploy OpenAI NiceGUI Chat Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select the environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+      command:
+        description: 'Select the command to run'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+env:
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Set environment variables based on input
+        id: set_env_vars
+        run: |
+          echo "TF_VAR_branch=${{ env.BRANCH_NAME }}" >> $GITHUB_ENV
+          echo "TF_VAR_ghpat=${{ secrets.GH_PAT }}" >> $GITHUB_ENV
+          echo "TF_VAR_appsecret=${{ secrets.APP_SECRET }}" >> $GITHUB_ENV
+          echo "TF_VAR_langchain_api_key=${{ secrets.LANGCHAIN_API_KEY }}" >> $GITHUB_ENV
+          echo "TF_VAR_openai_api_key=${{ secrets.OPENAI_API_KEY }}" >> $GITHUB_ENV
+          echo "TF_VAR_serpapi_api_key=${{ secrets.SERPAPI_API_KEY }}" >> $GITHUB_ENV
+
+          if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            echo "TF_VAR_env=prod" >> $GITHUB_ENV
+          else
+            echo "TF_VAR_env=dev" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Terraform commands
+        run: |
+          cd terraform
+
+          if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
+            terraform init -backend-config=backend-prod.tfvars
+          else
+            terraform init -backend-config=backend-dev.tfvars
+          fi
+          
+          if [ "${{ github.event.inputs.command }}" == "plan" ]; then
+            terraform plan 
+          fi
+          if [ "${{ github.event.inputs.command }}" == "apply" ]; then
+            terraform apply -auto-approve
+          fi
+          if [ "${{ github.event.inputs.command }}" == "destroy" ]; then
+            terraform destroy -auto-approve
+          fi
