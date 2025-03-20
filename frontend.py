@@ -52,7 +52,6 @@ def init(fastapi_app: FastAPI) -> None:
                 text = ui.input(placeholder=placeholder).props('rounded outlined input-class=mx-3') \
                     .classes('w-full self-center').on('keydown.enter', send)
 
-
     ui.run_with(
         fastapi_app,
         storage_secret='pick your private secret here',  # NOTE setting a secret is optional but allows for persistent storage per user
