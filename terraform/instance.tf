@@ -36,7 +36,7 @@ resource "aws_lightsail_instance" "instance" {
         
         sh -c "cat > $HOME/$APP/.env" <<EOG
         HOME="$HOME"
-        VERSION="0.3.0"
+        VERSION="0.4.0"
         ENV="$ENV"
         APP="$APP"
         LANGCHAIN_API_KEY="$LANGCHAIN_API_KEY"

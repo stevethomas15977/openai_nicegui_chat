@@ -6,7 +6,6 @@ from os import environ
 from dotenv import load_dotenv
 
 from langchain_openai import ChatOpenAI
-from log_callback_handler import NiceGuiLogElementCallbackHandler
 
 load_dotenv()
 OPENAI_API_KEY = environ.get('OPENAI_API_KEY', 'not-set')
@@ -21,16 +20,17 @@ def init(fastapi_app: FastAPI) -> None:
             text.value = ''
 
             with message_container:
-                ui.chat_message(text=question, name='You', sent=True)
-                response_message = ui.chat_message(name='Bot', sent=False)
+                ui.chat_message(text=question, sent=True)
+                response_message = ui.chat_message(sent=False).props('bg-color=blue-2')
                 spinner = ui.spinner(type='dots')
 
+            prompt = f"You are a helpful assistant. Please respond with your answer formatted as Markdown. Please answer the following quesiton.\n\n{question}\n\n"
             response = ''
-            async for chunk in llm.astream(question, config={'callbacks': [NiceGuiLogElementCallbackHandler(log)]}):
+            async for chunk in llm.astream(prompt):
                 response += chunk.content
                 response_message.clear()
                 with response_message:
-                    ui.html(response)
+                    ui.markdown(response)
                 ui.run_javascript('window.scrollTo(0, document.body.scrollHeight)')
             message_container.remove(spinner)
 
@@ -42,11 +42,8 @@ def init(fastapi_app: FastAPI) -> None:
 
         with ui.tabs().classes('w-full') as tabs:
             chat_tab = ui.tab('Chat')
-            logs_tab = ui.tab('Logs')
         with ui.tab_panels(tabs, value=chat_tab).classes('w-full max-w-2xl mx-auto flex-grow items-stretch'):
             message_container = ui.tab_panel(chat_tab).classes('items-stretch')
-            with ui.tab_panel(logs_tab):
-                log = ui.log().classes('w-full h-full')
 
         with ui.footer().classes('bg-white'), ui.column().classes('w-full max-w-3xl mx-auto my-6'):
             with ui.row().classes('w-full no-wrap items-center'):
@@ -54,8 +51,6 @@ def init(fastapi_app: FastAPI) -> None:
                     'Please provide your OPENAI key in the Python script first!'
                 text = ui.input(placeholder=placeholder).props('rounded outlined input-class=mx-3') \
                     .classes('w-full self-center').on('keydown.enter', send)
-            ui.markdown('simple chat app built with [NiceGUI](https://nicegui.io)') \
-                .classes('text-xs self-end mr-8 m-[-1em] text-primary')
 
 
     ui.run_with(
