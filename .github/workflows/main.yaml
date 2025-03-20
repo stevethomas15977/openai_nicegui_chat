@@ -22,6 +22,7 @@ on:
           - destroy
 
 env:
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
 
 jobs:
@@ -41,8 +42,12 @@ jobs:
 
           if [ "${{ github.event.inputs.environment }}" == "prod" ]; then
             echo "TF_VAR_env=prod" >> $GITHUB_ENV
+            echo "AWS_ACCESS_KEY_ID=${{ vars.PROD_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
           else
             echo "TF_VAR_env=dev" >> $GITHUB_ENV
+            echo "AWS_ACCESS_KEY_ID=${{ vars.DEV_AWS_ACCESS_KEY_ID }}" >> $GITHUB_ENV
+            echo "AWS_SECRET_ACCESS_KEY=${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}" >> $GITHUB_ENV
           fi
 
       - name: Checkout
