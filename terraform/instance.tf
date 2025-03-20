@@ -62,7 +62,7 @@ resource "aws_lightsail_instance" "instance" {
         User=ubuntu
         Group=ubuntu
         WorkingDirectory=/home/ubuntu/openai_nicegui_chat
-        ExecStart=/bin/bash /home/ubuntu/openai_nicegui_chat/start_api.sh
+        ExecStart=/bin/bash /home/ubuntu/openai_nicegui_chat/start.sh
 
         [Install]
         WantedBy=multi-user.target
